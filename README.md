@@ -2,6 +2,7 @@
 To run simulations execute game.py
 
 game.py parameters:
+
     - SCHMIBBETS := Starting amount of schmibbets for all players
     - PLAYERS := List of all bots playing the game. Add or remove custom bots from this list
 
