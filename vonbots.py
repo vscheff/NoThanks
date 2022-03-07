@@ -24,11 +24,10 @@ class PlayerW(Player):
         if self.schmib == 0:
             return True
         if schmibbets > self.schmib:
-            currentDeck = [i for i in range(3, 36) if i not in self.knownCards]
             under = 0
             over = 0
             card_val = card - schmibbets
-            for i in currentDeck:
+            for i in self.knownCards:
                 if i < card - card_val:
                     under += 1
                 if i > card - card_val:
@@ -39,9 +38,9 @@ class PlayerW(Player):
             if card in [i - 1, i + 1] and schmibbets > 4:
                 return True
             if schmibbets > self.schmib:
-                if card == i - 2 and i - 1 not in self.knownCards:
+                if card == i - 2 and i - 1 in self.knownCards:
                     return True
-                if card == i + 2 and i + 1 not in self.knownCards:
+                if card == i + 2 and i + 1 in self.knownCards:
                     return True
         return False
 
@@ -74,16 +73,15 @@ class PlayerY(Player):
     def take_card(self, card, schmibbets):
         if self.schmib == 0:
             return True
-        currentDeck = [i for i in range(3, 36) if i not in self.knownCards]
-        average = sum(currentDeck) / len(currentDeck)
+        average = sum(self.knownCards) / len(self.knownCards)
         if card - schmibbets + 14 <= average - (11 - self.schmib):
             return True
         for i in self.cards:
             if card == i - 1:
-                if schmibbets >= 3 or i - 2 in self.knownCards:
+                if schmibbets >= 3 or i - 2 not in self.knownCards:
                     return True
             if card == i + 1:
-                if schmibbets >= 3 or i + 2 in self.knownCards:
+                if schmibbets >= 3 or i + 2 not in self.knownCards:
                     return True
         return False
 

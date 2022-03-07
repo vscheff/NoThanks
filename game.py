@@ -19,8 +19,9 @@ def playMany(games):
     totalScore = [0 for _ in range(NUM_PLAYERS)]
     for i in range(games):
         scores = playGame()
+        min_score = min(scores)
         for j in range(NUM_PLAYERS):
-            if min(scores) == scores[j]:
+            if min_score == scores[j]:
                 gamesWon[j] += 1
             totalScore[j] += scores[j]
     averageScore = [round(i / games) for i in totalScore]
@@ -30,14 +31,16 @@ def playMany(games):
 def playGame(single=False):
     for player in PLAYERS:
         player.clear(SCHMIBBETS)
+    knownCards.clear()
     deck = [i for i in range(3, 36)]
+    knownCards.extend(deck)
     for i in range(9):
         deck.pop(randint(0, len(deck) - 1))
     player_turn = randint(0, NUM_PLAYERS - 1)
-    knownCards.clear()
     while deck:
-        card = deck.pop(randint(0, len(deck) - 1))
-        knownCards.append(card)
+        rand_index = randint(0, len(deck) - 1)
+        card = deck.pop(rand_index)
+        knownCards.pop(rand_index)
         schmibbets = 0
         while True:
             if PLAYERS[player_turn].take_card(card, schmibbets):
