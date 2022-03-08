@@ -1,20 +1,22 @@
 from random import randint
 import vonbots as v
+from Human import Human
 
-SCHMIBBETS = 11
+SCHMIBBETS = 9
 knownCards = []
 PLAYERS = [v.PlayerV(SCHMIBBETS, knownCards),
            v.PlayerW(SCHMIBBETS, knownCards),
            v.PlayerX(SCHMIBBETS, knownCards),
            v.PlayerY(SCHMIBBETS, knownCards),
            v.PlayerZ(SCHMIBBETS, knownCards)]
+# PLAYERS.append(Human(SCHMIBBETS, knownCards))
 NUM_PLAYERS = len(PLAYERS)
 
 def main():
     print('\nPlaying one game:\n')
     playGame(True)
 
-    print('\n\nPlaying many games')
+    print('\n\nPlaying many games:')
     playMany(1000)
 
 def playMany(games):
@@ -32,7 +34,7 @@ def playMany(games):
     print(f'\nGames won: {gamesWon}\nAverage score: {averageScore}\n')
 
 def playGame(single=False):
-    for player in PLAYERS:
+    for player in PLAYERS:s
         player.clear(SCHMIBBETS)
     knownCards.clear()
     knownCards.extend([i for i in range(3, 36)])

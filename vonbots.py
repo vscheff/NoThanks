@@ -64,8 +64,13 @@ class PlayerX(Player):
                     return True
         return False
 
-# Will take card if it's adjacent to a currently owned card and has more than 2 schmibbets
-# Will take card if player has none and the card - schmibbets + 13 is <= the average value of the deck
+# Will take card if it has none and one of the following are true:
+#    a) Card is in lower third and has 5 schmibbets
+#    b) Card is in middle third and has 10 schmibbets
+#    c) Card has 15 schmibbets
+# Will take card if value is less than 5
+# Will take card if it's directly preceding an existing card
+# Will take card if it's directly succeeding an existing card and has 5 schmibbets
 class PlayerY(Player):
     def __init__(self, schmibbets, knownCards):
         super().__init__(schmibbets, knownCards)
@@ -80,7 +85,7 @@ class PlayerY(Player):
                 return True
             if schmibbets >= 15:
                 return True
-        if card - schmibbets - 1 <= 3:
+        if card - schmibbets <= 4:
             return True
         for i in self.cards:
             if card == i - 1:
