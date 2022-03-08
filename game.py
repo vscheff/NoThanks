@@ -1,9 +1,12 @@
 from random import randint
+from math import floor
 import vonbots as v
 from Human import Human
 
-SCHMIBBETS = 9
 knownCards = []
+
+NUM_GAMES = 1000
+SCHMIBBETS = None
 PLAYERS = [v.PlayerV(SCHMIBBETS, knownCards),
            v.PlayerW(SCHMIBBETS, knownCards),
            v.PlayerX(SCHMIBBETS, knownCards),
@@ -12,12 +15,15 @@ PLAYERS = [v.PlayerV(SCHMIBBETS, knownCards),
 # PLAYERS.append(Human(SCHMIBBETS, knownCards))
 NUM_PLAYERS = len(PLAYERS)
 
+if SCHMIBBETS is None:
+    SCHMIBBETS = 11 if NUM_PLAYERS < 6 else 55 // NUM_PLAYERS
+
 def main():
     print('\nPlaying one game:\n')
     playGame(True)
 
     print('\n\nPlaying many games:')
-    playMany(1000)
+    playMany(NUM_GAMES)
 
 def playMany(games):
     gamesWon = [0 for _ in range(NUM_PLAYERS)]
@@ -34,7 +40,7 @@ def playMany(games):
     print(f'\nGames won: {gamesWon}\nAverage score: {averageScore}\n')
 
 def playGame(single=False):
-    for player in PLAYERS:s
+    for player in PLAYERS:
         player.clear(SCHMIBBETS)
     knownCards.clear()
     knownCards.extend([i for i in range(3, 36)])
