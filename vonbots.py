@@ -73,16 +73,20 @@ class PlayerY(Player):
     def take_card(self, card, schmibbets):
         if self.schmib == 0:
             return True
-        average = sum(self.knownCards) / len(self.knownCards)
-        if card - schmibbets + 14 <= average - (11 - self.schmib):
+        if not self.cards:
+            if card <= 14 and schmibbets >= 5:
+                return True
+            if card <= 25 and schmibbets >= 10:
+                return True
+            if schmibbets >= 15:
+                return True
+        if card - schmibbets - 1 <= 3:
             return True
         for i in self.cards:
             if card == i - 1:
-                if schmibbets >= 3 or i - 2 not in self.knownCards:
-                    return True
-            if card == i + 1:
-                if schmibbets >= 3 or i + 2 not in self.knownCards:
-                    return True
+                return True
+            if card == i + 1 and schmibbets >= 5:
+                return True
         return False
 
 # Will take card if it's adjacent to a currently owned card and has more than 3 schmibbets
