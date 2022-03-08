@@ -11,7 +11,10 @@ PLAYERS = [v.PlayerV(SCHMIBBETS, knownCards),
 NUM_PLAYERS = len(PLAYERS)
 
 def main():
+    print('\nPlaying one game:\n')
     playGame(True)
+
+    print('\n\nPlaying many games')
     playMany(1000)
 
 def playMany(games):
@@ -26,14 +29,14 @@ def playMany(games):
             totalScore[j] += scores[j]
     averageScore = [round(i / games) for i in totalScore]
 
-    print(f'\nGames won: {gamesWon}\nAverage score: {averageScore}')
+    print(f'\nGames won: {gamesWon}\nAverage score: {averageScore}\n')
 
 def playGame(single=False):
     for player in PLAYERS:
         player.clear(SCHMIBBETS)
     knownCards.clear()
-    deck = [i for i in range(3, 36)]
-    knownCards.extend(deck)
+    knownCards.extend([i for i in range(3, 36)])
+    deck = knownCards.copy()
     for i in range(9):
         deck.pop(randint(0, len(deck) - 1))
     player_turn = randint(0, NUM_PLAYERS - 1)
@@ -53,10 +56,12 @@ def playGame(single=False):
                 player_turn = 0 if player_turn == NUM_PLAYERS - 1 else player_turn + 1
 
         if single:
-            print(f"Player {player_turn} got Card {card} for {schmibbets} Schmibbets\n"
-                  f"Schmibbets: {', '.join([str(i.schmib) for i in PLAYERS])}")
+            print(f"Player {player_turn} got Card {card} for {schmibbets} Schmibbets. "
+                  f"Has cards {PLAYERS[player_turn].cards}\n"
+                  f"Schmibbets: {', '.join([str(i.schmib) for i in PLAYERS])}\n")
 
     if single:
+        print()
         for i in range(NUM_PLAYERS):
             p = PLAYERS[i]
             print(f"Player {i}: {p.get_score()} with {p.schmib} schmibbets. Cards: {p.cards}")
