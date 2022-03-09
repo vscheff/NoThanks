@@ -42,26 +42,16 @@ class PlayerW(Player):
                     return True
         return False
 
-# Will take card if it's adjacent to a currently owned card and has more than 3 schmibbets
-# Will take card if player has none, the card is <= 16, and has 5 or more schmibbets
-# Will take card if it's in lowest third, and the schmibbets cancel out it's value.
+
+# Will take card if it has none and one of the following are true:
+#    a) Card is less than 11
+#    b) Card is less than 21 and has 5 Schmibbets
+#    c) Card is less than 31 and has 10 Schmibbets
+#    d) Card has 15 Schmibbets
+# Will take card if value is less than 9
+# Will take card if it's directly preceding an existing card
+# Will take card if it's directly succeeding an existing card and has 5 Schmibbets
 class PlayerX(Player):
-    def __init__(self, schmibbets, knownCards):
-        super().__init__(schmibbets, knownCards)
-
-    def take_card(self, card, schmibbets):
-        if card <= 14 and card - schmibbets <= 0:
-            return True
-        if not self.cards and 5 <= schmibbets:
-            return True if card <= 16 else False
-        if schmibbets > 3:
-            for i in self.cards:
-                if card in [i - 1, i + 1]:
-                    return True
-        return False
-
-
-class PlayerU(Player):
     def __init__(self, schmibbets, knownCards):
         super().__init__(schmibbets, knownCards)
 
@@ -75,12 +65,12 @@ class PlayerU(Player):
                 return True
             if schmibbets >= 15:
                 return True
-        if card - schmibbets <= 4:
+        if card - schmibbets <= 8:
             return True
         for i in self.cards:
             if card == i - 1:
                 return True
-            if card == i + 1 and schmibbets >= 5:
+            if schmibbets >= 5 and card == i + 1:
                 return True
         return False
 
