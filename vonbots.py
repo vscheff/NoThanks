@@ -8,7 +8,7 @@ class PlayerV(Player):
         super().__init__(schmibbets, knownCards)
 
     def take_card(self, card, schmibbets):
-        return True if randint(0, 5) == 0 or self.schmib == 0 else False
+        return True if randint(0, 5) == 0 else False
 
 
 # Will take card if it's adjacent to a currently owned card and has more than 4 schmibbets
@@ -21,8 +21,6 @@ class PlayerW(Player):
         super().__init__(schmibbets, knownCards)
 
     def take_card(self, card, schmibbets):
-        if self.schmib == 0:
-            return True
         if schmibbets > self.schmib:
             under = 0
             over = 0
@@ -52,8 +50,6 @@ class PlayerX(Player):
         super().__init__(schmibbets, knownCards)
 
     def take_card(self, card, schmibbets):
-        if self.schmib == 0:
-            return True
         if card <= 14 and card - schmibbets <= 0:
             return True
         if not self.cards and 5 <= schmibbets:
@@ -63,6 +59,31 @@ class PlayerX(Player):
                 if card in [i - 1, i + 1]:
                     return True
         return False
+
+
+class PlayerU(Player):
+    def __init__(self, schmibbets, knownCards):
+        super().__init__(schmibbets, knownCards)
+
+    def take_card(self, card, schmibbets):
+        if not self.cards:
+            if card <= 10:
+                return True
+            if card <= 20 and schmibbets >= 5:
+                return True
+            if card <= 30 and schmibbets >= 10:
+                return True
+            if schmibbets >= 15:
+                return True
+        if card - schmibbets <= 4:
+            return True
+        for i in self.cards:
+            if card == i - 1:
+                return True
+            if card == i + 1 and schmibbets >= 5:
+                return True
+        return False
+
 
 # Will take card if it has none and one of the following are true:
 #    a) Card is in lower third and has 5 schmibbets
@@ -76,8 +97,6 @@ class PlayerY(Player):
         super().__init__(schmibbets, knownCards)
 
     def take_card(self, card, schmibbets):
-        if self.schmib == 0:
-            return True
         if not self.cards:
             if card <= 14 and schmibbets >= 5:
                 return True
@@ -102,8 +121,6 @@ class PlayerZ(Player):
         super().__init__(schmibbets, knownCards)
 
     def take_card(self, card, schmibbets):
-        if self.schmib == 0:
-            return True
         if not self.cards and card - schmibbets <= 1:
             return True
         if schmibbets > 3:
