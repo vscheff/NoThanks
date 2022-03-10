@@ -103,18 +103,23 @@ class PlayerY(Player):
                 return True
         return False
 
-# Will take card if it's adjacent to a currently owned card and has more than 3 schmibbets
-# Will take card if it has more schmibbets than the player does, and the card is <= 19
-# Will take card if player has none, and the value of the card is <= 1
+
 class PlayerZ(Player):
     def __init__(self, schmibbets, knownCards):
         super().__init__(schmibbets, knownCards)
 
     def take_card(self, card, schmibbets):
-        if not self.cards and card - schmibbets <= 1:
+        if not self.cards and card / 3 - schmibbets <= 0:
             return True
-        if schmibbets > 3:
-            for i in self.cards:
-                if card in [i - 1, i + 1]:
-                    return True
-        return True if schmibbets > self.schmib and card <= 19 else False
+        if card - schmibbets < 6 or (self.schmib < self.SCHMIBBETS and card - schmibbets < 9):
+            return True
+        for i in self.cards:
+            if card == i - 1 and (schmibbets > 0 or i - 2 not in self.knownCards):
+                return True
+            if card == i + 1 and (schmibbets > 4 or i + 2 not in self.knownCards):
+                return True
+            if schmibbets > 4 and card == i - 2 and i - 1 in self.knownCards:
+                return True
+            if schmibbets > 9 and card == i + 2 and i + 1 in self.knownCards:
+                return True
+        return False

@@ -1,12 +1,13 @@
 class Player:
     def __init__(self, schmibbets, knownCards):
         self.cards = []
+        self.SCHMIBBETS = schmibbets
         self.schmib = schmibbets
         self.knownCards = knownCards
 
-    def clear(self, schmibbets):
+    def clear(self):
         self.cards = []
-        self.schmib = schmibbets
+        self.schmib = self.SCHMIBBETS
 
     def get_score(self):
         if not self.cards:

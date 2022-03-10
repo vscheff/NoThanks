@@ -7,11 +7,11 @@ knownCards = []
 
 NUM_GAMES = 1000
 SCHMIBBETS = None
-PLAYERS = [v.PlayerV(SCHMIBBETS, knownCards),
-           v.PlayerW(SCHMIBBETS, knownCards),
-           v.PlayerX(SCHMIBBETS, knownCards),
-           v.PlayerY(SCHMIBBETS, knownCards),
-           v.PlayerZ(SCHMIBBETS, knownCards)]
+PLAYERS = [v.PlayerV,
+           v.PlayerW,
+           v.PlayerX,
+           v.PlayerY,
+           v.PlayerZ]
 # PLAYERS.append(Human(SCHMIBBETS, knownCards))
 NUM_PLAYERS = len(PLAYERS)
 
@@ -19,6 +19,8 @@ turns = [i for i in range(NUM_PLAYERS)]
 
 if SCHMIBBETS is None:
     SCHMIBBETS = 11 if NUM_PLAYERS < 6 else 55 // NUM_PLAYERS
+
+PLAYERS = [player(SCHMIBBETS, knownCards) for player in PLAYERS]
 
 def main():
     print('\nPlaying one game:\n')
@@ -43,7 +45,7 @@ def playMany(games):
 
 def playGame(single=False):
     for player in PLAYERS:
-        player.clear(SCHMIBBETS)
+        player.clear()
     knownCards.clear()
     knownCards.extend([i for i in range(3, 36)])
     deck = knownCards.copy()
@@ -53,6 +55,8 @@ def playGame(single=False):
     shuffle_turns()
     turn = 0
     player_turn = turns[turn]
+    if single:
+        print(f'Turn Order: {turns}\n')
     while deck:
         card = deck.pop(randint(0, len(deck) - 1))
         knownCards.remove(card)
@@ -88,4 +92,6 @@ def shuffle_turns():
 
 
 if __name__ == '__main__':
+    for _ in range(3):
+        shuffle_turns()
     main()
