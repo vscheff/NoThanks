@@ -54,9 +54,8 @@ def playGame(single=False):
     turn = 0
     player_turn = turns[turn]
     while deck:
-        rand_index = randint(0, len(deck) - 1)
-        card = deck.pop(rand_index)
-        knownCards.pop(rand_index)
+        card = deck.pop(randint(0, len(deck) - 1))
+        knownCards.remove(card)
         schmibbets = 0
         while True:
             if PLAYERS[player_turn].schmib == 0 or PLAYERS[player_turn].take_card(card, schmibbets):
