@@ -1,13 +1,13 @@
 from random import randint
 from Player import Player
+from math import log
 
+
+DECK_SIZE = 24
 
 # 20% chance of taking the card
 class PlayerV(Player):
-    def __init__(self, schmibbets, knownCards):
-        super().__init__(schmibbets, knownCards)
-
-    def take_card(self, card, schmibbets):
+    def wants_card(self, card, schmibbets, game_state):
         return True if randint(0, 5) == 0 else False
 
 
@@ -17,15 +17,12 @@ class PlayerV(Player):
 # Will take card if it is more likely to draw another card with a higher number than the current value
 #   Will only take a card in this way if the card has more schmibbets than the player does
 class PlayerW(Player):
-    def __init__(self, schmibbets, knownCards):
-        super().__init__(schmibbets, knownCards)
-
-    def take_card(self, card, schmibbets):
-        if schmibbets > self.schmib:
+    def wants_card(self, card, schmibbets, game_state):
+        if schmibbets > self.schmibbets:
             under = 0
             over = 0
             card_val = card - schmibbets
-            for i in self.knownCards:
+            for i in game_state.get_cards_taken():
                 if i < card - card_val:
                     under += 1
                 if i > card - card_val:
@@ -35,10 +32,10 @@ class PlayerW(Player):
         for i in self.cards:
             if card in [i - 1, i + 1] and schmibbets > 4:
                 return True
-            if schmibbets > self.schmib:
-                if card == i - 2 and i - 1 in self.knownCards:
+            if schmibbets > self.schmibbets:
+                if card == i - 2 and i - 1 in game_state.get_cards_taken():
                     return True
-                if card == i + 2 and i + 1 in self.knownCards:
+                if card == i + 2 and i + 1 in game_state.get_cards_taken():
                     return True
         return False
 
@@ -52,10 +49,7 @@ class PlayerW(Player):
 # Will take card if it's directly preceding an existing card
 # Will take card if it's directly succeeding an existing card and has 5 Schmibbets
 class PlayerX(Player):
-    def __init__(self, schmibbets, knownCards):
-        super().__init__(schmibbets, knownCards)
-
-    def take_card(self, card, schmibbets):
+    def wants_card(self, card, schmibbets, game_state):
         if not self.cards:
             if card <= 10:
                 return True
@@ -83,10 +77,7 @@ class PlayerX(Player):
 # Will take card if it's directly preceding an existing card
 # Will take card if it's directly succeeding an existing card and has 5 schmibbets
 class PlayerY(Player):
-    def __init__(self, schmibbets, knownCards):
-        super().__init__(schmibbets, knownCards)
-
-    def take_card(self, card, schmibbets):
+    def wants_card(self, card, schmibbets, game_state):
         if not self.cards:
             if card <= 14 and schmibbets >= 5:
                 return True
@@ -105,21 +96,43 @@ class PlayerY(Player):
 
 
 class PlayerZ(Player):
-    def __init__(self, schmibbets, knownCards):
-        super().__init__(schmibbets, knownCards)
-
-    def take_card(self, card, schmibbets):
+    def wants_card(self, card, schmibbets, game_state):
         if not self.cards and card / 3 - schmibbets <= 0:
             return True
-        if card - schmibbets < 6 or (self.schmib < self.SCHMIBBETS and card - schmibbets < 9):
+        if card - schmibbets < 6 or (self.schmibbets < self.starting_schmibbets and card - schmibbets < 9):
             return True
         for i in self.cards:
-            if card == i - 1 and (schmibbets > 0 or i - 2 not in self.knownCards):
+            if card == i - 1 and (schmibbets > 0 or i - 2 not in game_state.get_cards_taken()):
                 return True
-            if card == i + 1 and (schmibbets > 4 or i + 2 not in self.knownCards):
+            if card == i + 1 and (schmibbets > 4 or i + 2 not in game_state.get_cards_taken()):
                 return True
-            if schmibbets > 4 and card == i - 2 and i - 1 in self.knownCards:
+            if schmibbets > 4 and card == i - 2 and i - 1 in game_state.get_cards_taken():
                 return True
-            if schmibbets > 9 and card == i + 2 and i + 1 in self.knownCards:
+            if schmibbets > 9 and card == i + 2 and i + 1 in game_state.get_cards_taken():
                 return True
         return False
+
+
+class GoodPlayer(Player):
+    def wants_card(self, card, schmibbets, game_state):
+        INITIAL_SCHMIB_VALUE = 4
+
+        if self.is_card_adjacent(card):
+            return True
+
+        # schmib_factor = INITIAL_SCHMIB_VALUE + (-(INITIAL_SCHMIB_VALUE - 1) * (DECK_SIZE - len(game_state.deck)) / DECK_SIZE)
+        schmib_factor = -1.4 * log(self.schmibbets+1) + (7 * (DECK_SIZE - len(game_state.deck)) / DECK_SIZE)
+        print(f"{self.schmibbets}, {schmib_factor}")
+
+        decision = (card + -schmibbets * schmib_factor) < 0
+
+        if decision:
+            print(f"taking card {card} with schmibbets {schmibbets}")
+        return decision
+
+    def is_card_adjacent(self, card):
+        for c in self.cards:
+            if abs(c - card) == 1:
+                return True
+        return False
+

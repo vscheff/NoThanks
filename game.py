@@ -1,97 +1,131 @@
-from random import randint
+from random import randint, shuffle
 from math import floor
 import vonbots as v
 from Human import Human
+from dataclasses import dataclass
+from typing import List
+from Player import Player
+from copy import deepcopy,copy
 
-knownCards = []
 
 NUM_GAMES = 1000
+DEBUG = False
+
+
 SCHMIBBETS = None
 PLAYERS = [v.PlayerV,
            v.PlayerW,
            v.PlayerX,
            v.PlayerY,
-           v.PlayerZ]
+           v.PlayerZ,
+           v.GoodPlayer]
 # PLAYERS.append(Human(SCHMIBBETS, knownCards))
 NUM_PLAYERS = len(PLAYERS)
-
-turns = [i for i in range(NUM_PLAYERS)]
 
 if SCHMIBBETS is None:
     SCHMIBBETS = 11 if NUM_PLAYERS < 6 else 55 // NUM_PLAYERS
 
-PLAYERS = [player(SCHMIBBETS, knownCards) for player in PLAYERS]
+PLAYERS = [player(SCHMIBBETS) for player in PLAYERS]
 
 def main():
-    print('\nPlaying one game:\n')
-    playGame(True)
+    game = Game(PLAYERS)
+    sim = Sim(game)
 
-    print('\n\nPlaying many games:')
-    playMany(NUM_GAMES)
+    sim.run(1000)
 
-def playMany(games):
-    gamesWon = [0 for _ in range(NUM_PLAYERS)]
-    totalScore = [0 for _ in range(NUM_PLAYERS)]
-    for i in range(games):
-        scores = playGame()
-        min_score = min(scores)
-        for j in range(NUM_PLAYERS):
-            if min_score == scores[j]:
-                gamesWon[j] += 1
-            totalScore[j] += scores[j]
-    averageScore = [round(i / games) for i in totalScore]
 
-    print(f'\nGames won: {gamesWon}\nAverage score: {averageScore}\n')
+@dataclass(unsafe_hash=True)
+class GameState:
+    players: List[Player]
+    deck: List[int]
+    turn: int = 0
 
-def playGame(single=False):
-    for player in PLAYERS:
-        player.clear()
-    knownCards.clear()
-    knownCards.extend([i for i in range(3, 36)])
-    deck = knownCards.copy()
-    for i in range(9):
-        deck.pop(randint(0, len(deck) - 1))
+    def get_cards_taken(self):
+        return [card for player in self.players for card in player.cards]
 
-    shuffle_turns()
-    turn = 0
-    player_turn = turns[turn]
-    if single:
-        print(f'Turn Order: {turns}\n')
-    while deck:
-        card = deck.pop(randint(0, len(deck) - 1))
-        knownCards.remove(card)
-        schmibbets = 0
-        while True:
-            if PLAYERS[player_turn].schmib == 0 or PLAYERS[player_turn].take_card(card, schmibbets):
-                PLAYERS[player_turn].add_card(card)
-                PLAYERS[player_turn].add_schmib(schmibbets)
-                break
-            else:
-                PLAYERS[player_turn].add_schmib(-1)
-                schmibbets += 1
-                turn = 0 if turn == NUM_PLAYERS - 1 else turn + 1
-                player_turn = turns[turn]
 
-        if single:
-            print(f"Player {player_turn} got Card {card} for {schmibbets} Schmibbets. "
-                  f"Has cards {PLAYERS[player_turn].cards}\n"
-                  f"Schmibbets: {', '.join([str(i.schmib) for i in PLAYERS])}\n")
+class Game():
+    players = []
+    def __init__(self, players):
+        self.players = players
 
-    if single:
-        print()
-        for i in range(NUM_PLAYERS):
-            p = PLAYERS[i]
-            print(f"Player {i}: {p.get_score()} with {p.schmib} schmibbets. Cards: {p.cards}")
+    def start(self):
+        # Set up
+        deck = [i for i in range(3, 36)]
 
-    return [i.get_score() for i in PLAYERS]
+        for i in range(9):
+            deck.pop(randint(0, len(deck) - 1))
 
-def shuffle_turns():
-    for i in range(NUM_PLAYERS - 1, 0, -1):
-        j = randint(0, i)
-        turns[i], turns[j] = turns[j], turns[i]
+        shuffle(deck)
+        players = copy(self.players)
+        shuffle(players)
+
+        game_state = GameState(players=players, deck=deck)
+
+        if DEBUG:
+            print(f'Turn Order: {players}\n')
+
+        # Play game
+        while deck:
+            card = deck.pop()
+            schmibbets = 0
+            while True:
+                cur_player = players[game_state.turn]
+
+                if cur_player.schmibbets == 0 or cur_player.wants_card(card, schmibbets, game_state):
+                    cur_player.add_card(card)
+                    cur_player.add_schmib(schmibbets)
+                    break
+                else:
+                    cur_player.schmibbets -= 1
+                    schmibbets += 1
+                    game_state.turn = (game_state.turn + 1) % NUM_PLAYERS
+
+            if DEBUG:
+                print(f"{cur_player} got Card {card} for {schmibbets} Schmibbets. "
+                      f"Has cards {cur_player.cards}\n"
+                      f"Schmibbets: {', '.join([str(i.schmibbets) for i in PLAYERS])}\n")
+        if DEBUG:
+            print()
+            for i in range(NUM_PLAYERS):
+                p = PLAYERS[i]
+                print(f"Player {i}: {p.get_score()} with {p.schmibbets} schmibbets. Cards: {p.cards}")
+
+
+        for player in players:
+            player.calculate_score()
+
+        return game_state
+
+
+class Sim():
+    def __init__(self, game):
+        self.game = game
+        self.players = game.players
+        self.NUM_PLAYERS = len(self.players)
+
+    def run(self, games = 1000):
+        gamesWon = [0 for _ in range(self.NUM_PLAYERS)]
+        totalScore = [0 for _ in range(self.NUM_PLAYERS)]
+
+        for _ in range(games):
+            # play game
+            game_state = self.game.start()
+
+            # update player stats
+            winner = None
+            for player in game_state.players:
+                if not winner or winner.score > player.score:
+                    winner = player
+
+            for player in game_state.players:
+                player.player_stats.update(won=(player==winner), score=player.score)
+                player.clear()
+            
+
+        for player in game_state.players:
+            print(player.stats())
 
 
 if __name__ == '__main__':
-    for _ in range(3):
-        shuffle_turns()
     main()
