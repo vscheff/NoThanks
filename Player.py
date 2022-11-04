@@ -60,12 +60,12 @@ class PlayerStats:
         }
 
     def update(self, won, score):
+        self.games_played += 1
+        
         if self.average_score is None:
             self.average_score = score
         else:
-            self.average_score = (self.average_score * self.games_played / (self.games_played + 1)) + (score / (self.games_played + 1))
-
-        self.games_played += 1
+            self.average_score = (self.average_score * (self.games_played - 1)) / self.games_played + score / self.games_played
 
         if won:
             self.wins += 1

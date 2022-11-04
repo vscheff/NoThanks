@@ -114,20 +114,32 @@ class PlayerZ(Player):
 
 
 class GoodPlayer(Player):
-    def wants_card(self, card, schmibbets, game_state):
-        INITIAL_SCHMIB_VALUE = 4
+    ADJACENT_CARD_PARAM = 3.5
+    SEMI_ADJACENT_MULTIPLE_PARAM = .25
+    MYSTERY_VALUE_PARAM = 1.2
+    SCHMIBBET_VALUE_PARAM = 4
 
+    def wants_card(self, card, schmibbets, game_state):
         if self.is_card_adjacent(card):
             return True
 
-        # schmib_factor = INITIAL_SCHMIB_VALUE + (-(INITIAL_SCHMIB_VALUE - 1) * (DECK_SIZE - len(game_state.deck)) / DECK_SIZE)
-        schmib_factor = -1.4 * log(self.schmibbets+1) + (7 * (DECK_SIZE - len(game_state.deck)) / DECK_SIZE)
-        print(f"{self.schmibbets}, {schmib_factor}")
+        card_value = 0
 
-        decision = (card + -schmibbets * schmib_factor) < 0
+        cards_available = game_state.get_cards_available()
 
-        if decision:
-            print(f"taking card {card} with schmibbets {schmibbets}")
+        if (card + 1) in cards_available:
+            card_value += self.ADJACENT_CARD_PARAM
+            if (card + 2) in cards_available:
+                card_value += self.ADJACENT_CARD_PARAM * self.SEMI_ADJACENT_MULTIPLE_PARAM
+        if (card - 1) in cards_available:
+            card_value += self.ADJACENT_CARD_PARAM
+            if (card - 2) in cards_available:
+                card_value += self.ADJACENT_CARD_PARAM * self.SEMI_ADJACENT_MULTIPLE_PARAM
+
+
+        turn_factor = (1 - 1 / (1 + len(game_state.deck) / 25)) * self.MYSTERY_VALUE_PARAM
+        decision = (card_value + schmibbets * self.SCHMIBBET_VALUE_PARAM) * turn_factor - card>= 0
+
         return decision
 
     def is_card_adjacent(self, card):
@@ -135,4 +147,61 @@ class GoodPlayer(Player):
             if abs(c - card) == 1:
                 return True
         return False
+
+class FuturePlayer(Player):
+    # SCHMIBBETS_PER_VALUE_EST = .138
+    # TURNS_PER_GAME = 22.5
+
+    def wants_card(self, card, schmibbets, game_state):
+        return false
+    #     if self.is_card_adjacent(card):
+    #         # print(f"taking card {card} with schmibbets {schmibbets}. {self.cards}")
+    #         return True
+
+    #     # est_turns_remaining = self.est_turns_remaining(card, schmibbets, game_state)
+    #     # if est_turns_remaining > self.schmibbets: # take it we need schmibbets period
+    #     #     print(f"taking card {card} with schmibbets {schmibbets}. {self.cards} because turns")
+    #     #     return True
+
+    #     card_value = 0
+
+    #     cards_available = game_state.get_cards_available()
+
+    #     init_card_value = 3.5
+    #     second_card_ratio = .25
+    #     if (card + 1) in cards_available:
+    #         card_value += init_card_value
+    #         if (card + 2) in cards_available:
+    #             card_value += init_card_value * second_card_ratio
+    #     if (card - 1) in cards_available:
+    #         card_value += init_card_value
+    #         if (card - 2) in cards_available:
+    #             card_value += init_card_value * second_card_ratio
+
+    #     # turn_factor = (est_turns_remaining / self.TURNS_PER_GAME)
+    #     turn_factor = (1 - 1 / (1 + len(game_state.deck) / 25)) * 1.2
+    #     decision = (card_value + schmibbets * 4) * turn_factor - card>= 0
+
+    #     # print(f"card: {card}, value: {card_value}, schmibbets: {schmibbets}, turn_factor: {turn_factor}")
+    #     # decision = schmibbets / card > .138 # take it if it's more than average
+
+
+    #     # if decision:
+    #     #     print(f"taking card {card} with schmibbets {schmibbets}. {self.cards} because value")
+
+    #     return decision
+
+    # def is_card_adjacent(self, card):
+    #     for c in self.cards:
+    #         if abs(c - card) == 1:
+    #             return True
+    #     return False
+
+    # # def est_turns_remaining(self, current_card, current_schmibbets, game_state):
+    # #     turns = max(current_card * self.SCHMIBBETS_PER_VALUE_EST - current_schmibbets, 0)
+    # #     for card in game_state.deck: # cheating
+    # #         turns += card * self.SCHMIBBETS_PER_VALUE_EST
+
+    # #     return turns / len(game_state.players)
+
 

@@ -6,6 +6,9 @@ authors = ["Florian <florian@notion.ai>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+scipy = "^1.9.3"
+np = "^1.0.2"
+matplotlib = "^3.6.2"
 
 [tool.poetry.dev-dependencies]
 

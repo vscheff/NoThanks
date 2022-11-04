@@ -6,10 +6,18 @@ from dataclasses import dataclass
 from typing import List
 from Player import Player
 from copy import deepcopy,copy
+from collections import defaultdict
+from statistics import mean
+from scipy.optimize import curve_fit
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 NUM_GAMES = 1000
 DEBUG = False
+ANALYTICS = False
+analytics = defaultdict(list)
 
 
 SCHMIBBETS = None
@@ -31,17 +39,22 @@ def main():
     game = Game(PLAYERS)
     sim = Sim(game)
 
-    sim.run(1000)
+    sim.run(NUM_GAMES)
 
 
 @dataclass(unsafe_hash=True)
 class GameState:
+    ORIGINAL_DECK = set(i for i in range(3, 36))
+
     players: List[Player]
     deck: List[int]
     turn: int = 0
 
     def get_cards_taken(self):
-        return [card for player in self.players for card in player.cards]
+        return set(card for player in self.players for card in player.cards)
+
+    def get_cards_available(self):
+        return self.ORIGINAL_DECK - self.get_cards_taken()
 
 
 class Game():
@@ -71,6 +84,9 @@ class Game():
             schmibbets = 0
             while True:
                 cur_player = players[game_state.turn]
+
+                if ANALYTICS:
+                    analytics[card] = analytics[card] + [schmibbets]
 
                 if cur_player.schmibbets == 0 or cur_player.wants_card(card, schmibbets, game_state):
                     cur_player.add_card(card)
@@ -109,6 +125,8 @@ class Sim():
         totalScore = [0 for _ in range(self.NUM_PLAYERS)]
 
         for _ in range(games):
+            if DEBUG:
+                print(f"GAME {_}")
             # play game
             game_state = self.game.start()
 
@@ -125,6 +143,25 @@ class Sim():
 
         for player in game_state.players:
             print(player.stats())
+
+        if ANALYTICS:
+            def f(a,n,x1):
+                return (a*np.power(x1,-n));
+
+            xdata = np.array(sorted(analytics))
+            ydata = np.array([mean(analytics[card]) for card in sorted(analytics)])
+            pars, cov = curve_fit(f=f, xdata=xdata, ydata=ydata)
+
+            fit_y = f(xdata, pars[0], pars[1])
+
+            plt.plot(xdata, ydata, 'o', label='data')
+            plt.plot(xdata, fit_y, '-', label='fit')
+            plt.legend()
+            plt.show()
+
+
+            # for card in sorted(analytics):
+                # print(f"card {card}: avg schmib {}")
 
 
 if __name__ == '__main__':
